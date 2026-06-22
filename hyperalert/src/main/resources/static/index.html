@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperAlert — Disaster Alert System</title>
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        min-height: 100vh;
+        color: #ffffff;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    header {
+        text-align: center;
+        padding: 40px 0 30px;
+    }
+
+    header h1 {
+        font-size: 2.5rem;
+        color: #e94560;
+        letter-spacing: 2px;
+    }
+
+    header p {
+        color: #a8b2d8;
+        margin-top: 8px;
+        font-size: 0.95rem;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
+    }
+
+    .card h2 {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: #e94560;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        color: #ffffff;
+        font-size: 0.95rem;
+        margin-bottom: 12px;
+        outline: none;
+        transition: border 0.3s;
+    }
+
+    input:focus {
+        border-color: #e94560;
+    }
+
+    input::placeholder {
+        color: #a8b2d8;
+    }
+
+    button {
+        width: 100%;
+        padding: 13px;
+        background: #e94560;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.1s;
+    }
+
+    button:hover {
+        background: #c73652;
+        transform: translateY(-1px);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        margin-top: 8px;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .result-box {
+        display: none;
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .result-box.show {
+        display: block;
+    }
+
+    .weather-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .weather-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .weather-item .label {
+        font-size: 0.75rem;
+        color: #a8b2d8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .weather-item .value {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-top: 4px;
+        color: #ffffff;
+    }
+
+    .alert-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 12px;
+    }
+
+    .alert-badge.danger {
+        background: rgba(233, 69, 96, 0.2);
+        border: 1px solid #e94560;
+        color: #e94560;
+    }
+
+    .alert-badge.safe {
+        background: rgba(46, 213, 115, 0.2);
+        border: 1px solid #2ed573;
+        color: #2ed573;
+    }
+
+    .message {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-top: 12px;
+        font-size: 0.9rem;
+    }
+
+    .message.success {
+        background: rgba(46, 213, 115, 0.15);
+        border: 1px solid #2ed573;
+        color: #2ed573;
+    }
+
+    .message.error {
+        background: rgba(233, 69, 96, 0.15);
+        border: 1px solid #e94560;
+        color: #e94560;
+    }
+
+    .hidden { display: none; }
+
+    #logoutBtn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: auto;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        background: rgba(255,255,255,0.1);
+    }
+
+    .location-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .location-sub {
+        font-size: 0.85rem;
+        color: #a8b2d8;
+        margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<button id="logoutBtn" class="hidden" onclick="logout()">Logout</button>
+
+<div class="container">
+  <header>
+    <h1>🚨 HyperAlert</h1>
+    <p>Village-Level Disaster & Emergency Alert System</p>
+  </header>
+
+  <!-- LOGIN SECTION -->
+  <div id="loginSection" class="card">
+    <h2>🔐 Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+    <button class="btn-secondary" onclick="register()">Register New Account</button>
+    <div id="loginMsg"></div>
+  </div>
+
+  <!-- MAIN SECTION (shown after login) -->
+  <div id="mainSection" class="hidden">
+
+    <!-- WEATHER CHECK -->
+    <div class="card">
+      <h2>🌦️ Check Weather by Pincode</h2>
+      <input type="text" id="pincode" placeholder="Enter 6-digit pincode (e.g. 636141)" maxlength="6" />
+      <button onclick="checkWeather()">Check Weather & Alerts</button>
+
+      <div id="weatherResult" class="result-box">
+        <div class="location-name" id="locationName"></div>
+        <div class="location-sub" id="locationSub"></div>
+
+        <div class="weather-grid">
+          <div class="weather-item">
+            <div class="label">Temperature</div>
+            <div class="value" id="temp"></div>
+          </div>
+          <div class="weather-item">
+            <div class="label">Humidity</div>
+            <div class="value" id="humidity"></div>
+          </div>
+          <div class="weather-item">
+            <div class="label">Condition</div>
+            <div class="value" id="condition"></div>
+          </div>
+          <div class="weather-item">
+            <div class="label">Weather Station</div>
+            <div class="value" id="station"></div>
+          </div>
+        </div>
+
+        <div id="alertBadge"></div>
+        <div id="subscribersInfo"></div>
+      </div>
+    </div>
+
+    <!-- SUBSCRIBE -->
+    <div class="card">
+      <h2>🔔 Subscribe to Pincode Alerts</h2>
+      <input type="text" id="subPincode" placeholder="Enter pincode to monitor" maxlength="6" />
+      <input type="email" id="subEmail" placeholder="Your email for alerts" />
+      <button onclick="subscribe()">Subscribe to Alerts</button>
+      <div id="subMsg"></div>
+    </div>
+
+    <!-- MY SUBSCRIPTIONS -->
+    <div class="card">
+      <h2>📋 My Subscriptions</h2>
+      <button onclick="loadSubscriptions()">View My Subscriptions</button>
+      <div id="subList" style="margin-top: 16px;"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8080';
+  let token = localStorage.getItem('token') || null;
+
+  // Check if already logged in
+  if (token) showMainSection();
+
+  async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+          const res = await fetch(`${API}/api/auth/login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password })
+          });
+          const data = await res.json();
+
+          if (data.token) {
+              token = data.token;
+              localStorage.setItem('token', token);
+              showMessage('loginMsg', 'Login successful!', 'success');
+              setTimeout(showMainSection, 800);
+          } else {
+              showMessage('loginMsg', data.message || 'Login failed!', 'error');
+          }
+      } catch (e) {
+          showMessage('loginMsg', 'Connection error!', 'error');
+      }
+  }
+
+  async function register() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+          showMessage('loginMsg', 'Please enter username and password!', 'error');
+          return;
+      }
+
+      try {
+          const res = await fetch(`${API}/api/auth/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password, email: username + '@hyperalert.com' })
+          });
+          const data = await res.json();
+
+          if (data.token) {
+              token = data.token;
+              localStorage.setItem('token', token);
+              showMessage('loginMsg', 'Registered successfully!', 'success');
+              setTimeout(showMainSection, 800);
+          } else {
+              showMessage('loginMsg', data.message || 'Registration failed!', 'error');
+          }
+      } catch (e) {
+          showMessage('loginMsg', 'Connection error!', 'error');
+      }
+  }
+
+  async function checkWeather() {
+      const pincode = document.getElementById('pincode').value;
+      if (!pincode || pincode.length !== 6) {
+          alert('Please enter a valid 6-digit pincode!');
+          return;
+      }
+
+      try {
+          const res = await fetch(`${API}/api/weather/${pincode}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+
+          if (res.status === 403) {
+              alert('Session expired! Please login again.');
+              logout();
+              return;
+          }
+
+          document.getElementById('locationName').textContent =
+              data.officialLocationName + ', ' + data.district;
+          document.getElementById('locationSub').textContent =
+              'Pincode: ' + data.requestedPincode;
+          document.getElementById('temp').textContent = data.temperature + '°C';
+          document.getElementById('humidity').textContent = data.humidity + '%';
+          document.getElementById('condition').textContent = data.weatherCondition;
+          document.getElementById('station').textContent = data.nearestWeatherStation;
+
+          const badge = document.getElementById('alertBadge');
+          if (data.alertGenerated) {
+              badge.innerHTML = `<span class="alert-badge danger">⚠️ ${data.alertType} ALERT GENERATED</span>`;
+              document.getElementById('subscribersInfo').innerHTML =
+                  `<p style="margin-top:8px; color:#a8b2d8; font-size:0.85rem;">📧 ${data.subscribersNotified} subscriber(s) notified</p>`;
+          } else {
+              badge.innerHTML = `<span class="alert-badge safe">✅ No Severe Weather Detected</span>`;
+              document.getElementById('subscribersInfo').innerHTML = '';
+          }
+
+          document.getElementById('weatherResult').classList.add('show');
+      } catch (e) {
+          alert('Error fetching weather data!');
+      }
+  }
+
+  async function subscribe() {
+      const pincode = document.getElementById('subPincode').value;
+      const email = document.getElementById('subEmail').value;
+
+      if (!pincode || !email) {
+          showMessage('subMsg', 'Please enter pincode and email!', 'error');
+          return;
+      }
+
+      try {
+          const res = await fetch(`${API}/api/subscriptions`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ pincode, email })
+          });
+          const data = await res.json();
+
+          if (data.id) {
+              showMessage('subMsg', `✅ Subscribed to pincode ${data.pincode} successfully!`, 'success');
+          } else {
+              showMessage('subMsg', 'Subscription failed!', 'error');
+          }
+      } catch (e) {
+          showMessage('subMsg', 'Connection error!', 'error');
+      }
+  }
+
+  async function loadSubscriptions() {
+      try {
+          const res = await fetch(`${API}/api/subscriptions/my`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+
+          const list = document.getElementById('subList');
+          if (data.length === 0) {
+              list.innerHTML = '<p style="color:#a8b2d8;">No subscriptions yet.</p>';
+              return;
+          }
+
+          list.innerHTML = data.map(sub => `
+              <div style="background:rgba(255,255,255,0.05); padding:12px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                  <div>
+                      <div style="font-weight:600;">📍 Pincode: ${sub.pincode}</div>
+                      <div style="font-size:0.8rem; color:#a8b2d8;">📧 ${sub.email}</div>
+                  </div>
+                  <span style="color:#2ed573; font-size:0.8rem;">● Active</span>
+              </div>
+          `).join('');
+      } catch (e) {
+          document.getElementById('subList').innerHTML = '<p style="color:#e94560;">Error loading subscriptions.</p>';
+      }
+  }
+
+  function showMainSection() {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('mainSection').classList.remove('hidden');
+      document.getElementById('logoutBtn').classList.remove('hidden');
+  }
+
+  function logout() {
+      token = null;
+      localStorage.removeItem('token');
+      document.getElementById('loginSection').classList.remove('hidden');
+      document.getElementById('mainSection').classList.add('hidden');
+      document.getElementById('logoutBtn').classList.add('hidden');
+      document.getElementById('weatherResult').classList.remove('show');
+  }
+
+  function showMessage(elementId, msg, type) {
+      const el = document.getElementById(elementId);
+      el.innerHTML = `<div class="message ${type}">${msg}</div>`;
+      setTimeout(() => el.innerHTML = '', 3000);
+  }
+</script>
+
+</body>
+</html>

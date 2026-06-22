@@ -1,5 +1,7 @@
 package com.hyperalert.hyperalert.service;
+import com.hyperalert.hyperalert.entity.Subscription;
 
+import java.util.List;
 import com.hyperalert.hyperalert.dto.GeoResponse;
 import com.hyperalert.hyperalert.dto.PincodeResponse;
 import com.hyperalert.hyperalert.dto.WeatherResponse;
@@ -24,12 +26,16 @@ public class WeatherService {
     private final RestTemplate restTemplate;
     private final AlertService alertService;
     private final EmailService emailService;
+    private final SubscriptionService subscriptionService;
 
-    public WeatherService(RestTemplate restTemplate, AlertService alertService, EmailService emailService) {
+    public WeatherService(RestTemplate restTemplate, AlertService alertService,
+                          EmailService emailService, SubscriptionService subscriptionService) {
         this.restTemplate = restTemplate;
         this.alertService = alertService;
         this.emailService = emailService;
+        this.subscriptionService = subscriptionService;
     }
+
 
     public Map<String, Object> getWeatherByPincode(String pincode) {
         // Validate pincode format (must be 6 digits)
@@ -106,14 +112,22 @@ public class WeatherService {
 
             alertService.createAlert(autoAlert);
 
-            emailService.sendAlertEmail(
-                    "indiradhivyapriya@gmail.com",
-                    severeCondition + " Alert: " + officialName,
-                    "Emergency Alert!\n\nLocation: " + officialName + ", " + district
-                            + "\nCondition: " + weatherResponse.getWeather()[0].getDescription()
-                            + "\nTemperature: " + temp + "°C"
-                            + "\n\nStay safe and follow local authority guidance."
-            );
+            List<Subscription> subscribers = subscriptionService.getSubscriptionsByPincode(pincode);
+
+            String emailBody = "Emergency Alert!\n\nLocation: " + officialName + ", " + district
+                    + "\nCondition: " + weatherResponse.getWeather()[0].getDescription()
+                    + "\nTemperature: " + temp + "°C"
+                    + "\n\nStay safe and follow local authority guidance.";
+
+            for (Subscription sub : subscribers) {
+                emailService.sendAlertEmail(
+                        sub.getEmail(),
+                        severeCondition + " Alert: " + officialName,
+                        emailBody
+                );
+            }
+
+            result.put("subscribersNotified", subscribers.size());
 
             result.put("alertGenerated", true);
             result.put("alertType", severeCondition);
