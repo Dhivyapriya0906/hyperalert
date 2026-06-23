@@ -21,10 +21,7 @@ public class AlertController {
         this.alertService = alertService;
     }
 
-    @PostMapping
-    public Alert createAlert(@Valid @RequestBody Alert alert) {
-        return alertService.createAlert(alert);
-    }
+
 
     @GetMapping
     public List<Alert> getAllAlerts() {
@@ -50,6 +47,13 @@ public class AlertController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Alert not found with id: " + id);
         }
+        String username = authentication.getName();
+        if (existing.getCreatedBy() != null
+                && !existing.getCreatedBy().equals("SYSTEM")
+                && !existing.getCreatedBy().equals(username)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You don't have permission to update this alert");
+        }
         return ResponseEntity.ok(alertService.updateAlert(id, alert));
     }
 
@@ -60,7 +64,20 @@ public class AlertController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Alert not found with id: " + id);
         }
+        String username = authentication.getName();
+        if (existing.getCreatedBy() != null
+                && !existing.getCreatedBy().equals("SYSTEM")
+                && !existing.getCreatedBy().equals(username)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You don't have permission to delete this alert");
+        }
         alertService.deleteAlert(id);
         return ResponseEntity.ok("Alert deleted successfully");
     }
+    @PostMapping
+    public Alert createAlert(@Valid @RequestBody Alert alert, Authentication authentication) {
+        alert.setCreatedBy(authentication.getName());
+        return alertService.createAlert(alert);
+    }
+
 }

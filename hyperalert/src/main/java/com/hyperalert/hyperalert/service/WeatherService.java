@@ -102,6 +102,7 @@ public class WeatherService {
 
         if (severeCondition != null) {
             Alert autoAlert = new Alert();
+            autoAlert.setCreatedBy("SYSTEM");
             autoAlert.setTitle(severeCondition + " Alert - " + officialName);
             autoAlert.setDescription("Auto-generated alert: " + weatherResponse.getWeather()[0].getDescription()
                     + ", Temp: " + temp + "°C");

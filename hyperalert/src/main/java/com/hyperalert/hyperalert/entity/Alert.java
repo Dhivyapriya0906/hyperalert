@@ -8,7 +8,7 @@ import lombok.Data;
 @Table(name = "alerts")
 @Data
 public class Alert {
-
+    private String createdBy; // username who created or "SYSTEM" for auto-generated
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
