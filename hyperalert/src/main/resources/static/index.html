@@ -397,34 +397,36 @@
   }
 
   async function subscribe() {
-      const pincode = document.getElementById('subPincode').value;
-      const email = document.getElementById('subEmail').value;
+    const pincode = document.getElementById('subPincode').value;
+    const email = document.getElementById('subEmail').value;
 
-      if (!pincode || !email) {
-          showMessage('subMsg', 'Please enter pincode and email!', 'error');
-          return;
-      }
+    if (!pincode || !email) {
+        showMessage('subMsg', 'Please enter pincode and email!', 'error');
+        return;
+    }
 
-      try {
-          const res = await fetch(`${API}/api/subscriptions`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({ pincode, email })
-          });
-          const data = await res.json();
+    try {
+        const res = await fetch(`${API}/api/subscriptions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ pincode, email })
+        });
 
-          if (data.id) {
-              showMessage('subMsg', `✅ Subscribed to pincode ${data.pincode} successfully!`, 'success');
-          } else {
-              showMessage('subMsg', 'Subscription failed!', 'error');
-          }
-      } catch (e) {
-          showMessage('subMsg', 'Connection error!', 'error');
-      }
-  }
+        const data = await res.json();
+        console.log('Subscribe response:', res.status, data); // debug line
+
+        if (res.ok && data.id) {
+            showMessage('subMsg', `✅ Subscribed to pincode ${data.pincode} successfully!`, 'success');
+        } else {
+            showMessage('subMsg', data.message || JSON.stringify(data), 'error');
+        }
+    } catch (e) {
+        showMessage('subMsg', 'Connection error: ' + e.message, 'error');
+    }
+}
 
   async function loadSubscriptions() {
       try {

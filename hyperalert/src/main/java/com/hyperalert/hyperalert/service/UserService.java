@@ -4,6 +4,8 @@ import com.hyperalert.hyperalert.entity.User;
 import com.hyperalert.hyperalert.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.hyperalert.hyperalert.exception.UserAlreadyExistsException;
+import com.hyperalert.hyperalert.exception.InvalidCredentialsException;
 
 @Service
 public class UserService {
@@ -18,7 +20,7 @@ public class UserService {
 
     public User registerUser(String username, String password, String email) {
         if (userRepository.findByUsername(username).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            throw new UserAlreadyExistsException("Username already exists: " + username);
         }
         User user = new User();
         user.setUsername(username);
@@ -29,9 +31,9 @@ public class UserService {
 
     public User validateLogin(String username, String password) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid username or password");
+            throw new InvalidCredentialsException("Invalid username or password");
         }
         return user;
     }

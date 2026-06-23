@@ -20,7 +20,7 @@ public class SubscriptionController {
     @PostMapping
     public Subscription subscribe(@RequestBody Map<String, String> request, Authentication authentication) {
         String username = authentication.getName();
-        return subscriptionService.subscribe(request.get("pincode"), request.get("email"), username);
+        return subscriptionService.subscribe(username, request.get("email"), request.get("pincode"));
     }
 
     @GetMapping("/my")

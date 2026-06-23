@@ -7,4 +7,5 @@ import java.util.List;
 public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
     List<Subscription> findByPincode(String pincode);
     List<Subscription> findByUsername(String username);
+    boolean existsByUsernameAndPincode(String username, String pincode);
 }

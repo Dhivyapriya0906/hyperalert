@@ -14,13 +14,7 @@ public class SubscriptionService {
         this.subscriptionRepository = subscriptionRepository;
     }
 
-    public Subscription subscribe(String pincode, String email, String username) {
-        Subscription sub = new Subscription();
-        sub.setPincode(pincode);
-        sub.setEmail(email);
-        sub.setUsername(username);
-        return subscriptionRepository.save(sub);
-    }
+
 
     public List<Subscription> getSubscriptionsByPincode(String pincode) {
         return subscriptionRepository.findByPincode(pincode);
@@ -32,5 +26,17 @@ public class SubscriptionService {
 
     public void unsubscribe(Long id) {
         subscriptionRepository.deleteById(id);
+    }
+    public Subscription subscribe(String username, String email, String pincode) {
+        // Check for duplicate subscription
+        if (subscriptionRepository.existsByUsernameAndPincode(username, pincode)) {
+            throw new RuntimeException("You are already subscribed to pincode: " + pincode);
+        }
+        Subscription sub = new Subscription();
+        sub.setUsername(username);
+        sub.setEmail(email);
+        sub.setPincode(pincode);
+        sub.setActive(true);
+        return subscriptionRepository.save(sub);
     }
 }
